@@ -17,7 +17,7 @@ if ($checkforstring) {
     $search = (Get-Content $checkforstring | Select-String -Pattern 'Microsoft Corporation').Matches.Success
     if($search){
         Write-output "$msefi contians the string Microsoft Corporation proceeding."
-        cp W:\EFI\Microsoft\Boot\bootmgfw.efi cp W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
+        cp W:\EFI\Microsoft\Boot\bootmgfw.efi W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
         cp W:\EFI\Microsoft\Boot\bootmgfw.efi W:\EFI\Microsoft\Boot\bootmgfww.efi
     } else {
         Write-output "$msefi does not contians the string Microsoft Corporation moving aborting"
