@@ -1,4 +1,4 @@
-﻿Write-Output "Workaround read only NVRAM or in my case a hacked bios with hardcoded defaults and an early EFI" 
+﻿Write-Output "Workaround read only NVRAM or in my case a hacked BIOS with hardcoded defaults and an early version EFI" 
 pause
 
 if (-not (Test-Path "W:\EFI\Microsoft\Boot\bootmgfw.efi")) {
@@ -17,44 +17,56 @@ if ($checkforstring) {
     $search = (Get-Content $checkforstring | Select-String -Pattern 'Microsoft Corporation').Matches.Success
     if($search){
         Write-output "$msefi contians the string Microsoft Corporation moving proceeding"
+        cp W:\EFI\Microsoft\Boot\bootmgfw.efi cp W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
         cp W:\EFI\Microsoft\Boot\bootmgfw.efi W:\EFI\Microsoft\Boot\bootmgfww.efi
     } else {
         Write-output "$msefi does not contians the string Microsoft Corporation moving aborting"
         pause 
-        break
+       break
     }
 } else {
     "No file: $msefi"
 }
 
-write-output "Locating grubx64.efi and path"
+write-output "Located grub*.efi and path:"
 
-$grubfileocation = Get-ChildItem –Path W:\EFI -include grubx64.efi -Force -Recurse |
-    ? FullName -notLike 'W:\EFI\Microsoft\Boot\grubx64.efi' |
+$GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grubx64.efi*,grubia32.efi* -Force -Recurse |
+    ? FullName -notLike 'W:\EFI\Microsoft\Boot\grubx64.efi*' |
+        ? FullName -notLike 'W:\EFI\Microsoft\Boot\grubia32.efi*' |
         Get-ChildItem -File -Force |
             select-object -Expand FullName
-$grubfileocation 
+$GrubEfiFileLoc 
 
-$grubpwd = Split-Path -Path "$grubfileocation" -Parent
-write-output "GRUB location: $grubpwd"
+$GrubPwd = Split-Path -Path "$GrubEfiFileLoc" -Parent
+write-output "GRUB location: $GrubPwd"
 
-if((Get-FileHash $grubfileocation).hash  -ne (Get-FileHash W:\EFI\Microsoft\Boot\bootmgfw.efi).hash) {
-Write-Output $grubfileocation is not the bootmgfw.efi
- cp $grubpwd W:\EFI\Microsoft\Boot\
-} else { 
-Write-Output "$grubfileocation is the bootmgfw.efi"
+
+if (Test-Path "$GrubPwd\grubia32.efi*") {
+
+$MsGrubEfiLoc = "W:\EFI\Microsoft\Boot\grubia32.efi"
+write-output "GRUB EFI is 32bit using: $MsGrubEfiLoc"
+} else {
+$MsGrubEfiLoc = "W:\EFI\Microsoft\Boot\grubx64.efi"
+write-output "GRUB EFI is 64bit using: $MsGrubEfiLoc"
 }
 
-if((Get-FileHash $grubfileocation).hash  -ne (Get-FileHash W:\EFI\Microsoft\Boot\grubx64.efi).hash) {
-Write-Output "$grubfileocation is not the same as W:\EFI\Microsoft\Boot\grubx64.efi"
- cp $grubpwd W:\EFI\Microsoft\Boot\
+if((Get-FileHash $GrubEfiFileLoc).hash  -ne (Get-FileHash W:\EFI\Microsoft\Boot\bootmgfw.efi).hash) {
+Write-Output "$GrubEfiFileLoc is not the bootmgfw.efi"
+ cp $GrubPwd W:\EFI\Microsoft\Boot\
 } else { 
-Write-Output "$grubfileocation is and W:\EFI\Microsoft\Boot\grubx64.efi are the same file" 
+Write-Output "$GrubEfiFileLoc is the bootmgfw.efi"
 }
 
-if (-not (Test-Path "W:\EFI\Microsoft\Boot\grubx64.efi")) {
-Write-Output "EFI\Microsoft\Boot\grubx64.efi not found! Coptying $gruppwd to W:\EFI\Microsoft\Boot\"
- cp $gruppwd W:\EFI\Microsoft\Boot\
+if((Get-FileHash $GrubEfiFileLoc).hash  -ne (Get-FileHash $MsGrubEfiLoc).hash) {
+Write-Output "$GrubEfiFileLoc is not the same as $MsGrubEfiLoc"
+ cp $GrubPwd W:\EFI\Microsoft\Boot\
+} else { 
+Write-Output "$GrubEfiFileLoc is and $MsGrubEfiLoc are the same file" 
+}
+
+if (-not (Test-Path $MsGrubEfiLoc)) {
+Write-Output "$MsGrubEfiLoc not found! Coptying $gruppwd to W:\EFI\Microsoft\Boot\"
+cp $GrubPwd W:\EFI\Microsoft\Boot\
 }
 
 Write-Output "MD5 compare W:\EFI\Microsoft\Boot\*.efi" 
@@ -86,7 +98,7 @@ Write-Output $hash
 Out-File -FilePath $hashfileout -InputObject $hash -Append
 
 
-$EfiFilePath = "W:\EFI\Microsoft\Boot\grubx64.efi"
+$EfiFilePath = "$MsGrubEfiLoc"
 $hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($EfiFilePath))).Replace("-","")
 
 Write-Output $hash
@@ -99,16 +111,23 @@ md5hashefi
 function CompareHashFiles() {
 
 if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
-write-output "EFI files are different "
+write-output "EFI files are different replacing changed EFI files"
+
+if((Get-FileHash W:\EFI\Microsoft\Boot\bootmgfw.efi).hash  -ne (Get-FileHash  W:\EFI\Microsoft\Boot\bootmgfww.efi).hash) {
 cp W:\EFI\Microsoft\Boot\bootmgfw.efi W:\EFI\Microsoft\Boot\bootmgfww.efi
-cp W:\EFI\Microsoft\Boot\grubx64.efi W:\EFI\Microsoft\Boot\bootmgfw.efi
+}
+
+if((Get-FileHash $MsGrubEfiLoc).hash  -ne (Get-FileHash W:\EFI\Microsoft\Boot\bootmgfw.efi).hash) {
+cp $MsGrubEfiLoc W:\EFI\Microsoft\Boot\bootmgfw.efi
+}
+
 cp $hashfileout $hashfile
+
 } else {
 Write-output  "EFI files are the same"
   }
 
 }
-
 CompareHashFiles
 
 Write-Output "All should be well"
