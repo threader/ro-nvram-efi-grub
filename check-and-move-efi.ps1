@@ -25,6 +25,7 @@ if ($checkforstring) {
     }
 } else {
     "No file: $msefi"
+	break
 }
 
 write-output "Locate signed or unsigned Secure Boot shim*.efi* and grub*.efi* files and path:"
@@ -69,7 +70,7 @@ $GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grub*.efi -Force -Recurs
 		}
 	}
 
-	if (Test-Path "$GrubPwd\grubi*.efi*.*") {
+	if (Test-Path "$GrubPwd\grubi*.efi*.") {
 		$ask = Read-Host -Prompt "Found your Linux distributions signed GRUB .efi, use this file?[y/n]"
 		if ( $ask -eq 'y' ) {
 			$GrubForMsEfiLoc = Split-Path -Path $GrubPwd\grubi*.efi*
