@@ -1,4 +1,4 @@
-ro-nvram-efi-grub 0.01
+ro-nvram-efi-grub 0.02
 
 
 This is meant to solve a problem with read only NVRAM's where GRUB can't be set as default, or in my case a 2010ish laptop with a hardcoded hacked and unlocked BIOS that normally didn't support EFI untill said BIOS, my solution was to edit the os-prober script (/usr/lib/os-probes/mounted/efi/20microsoft : bootmgfw=$(item_in_dir bootmgfw.efi "$efi/$microsoft/$boot") to search for bootmgfww.efi instead and move EFI/Microsoft/Boot/bootmgfw.efi there, copy /boot/EFI/debian/* to /boot/EFI/Microsoft/Boot/ and copy grubx64.efi to bootmgfw.efi. 
