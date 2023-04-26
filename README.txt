@@ -7,13 +7,14 @@ Also a great way for me to learn some PowerShell :) - Linux user since 1999 <3'e
 
 What you need to do:
 --
-run the file "run-this.cmd" - with an internet conntection as it downloads NSudo.
+Run the file "run-this.cmd" - with an internet conntection as it downloads NSudo.
 --
 
 TODO:
-Add Secure Boot Signed and unsigned support. again #Done
+Add Secure Boot Signed and unsigned support. again...( 
+thank you hibernated linux and ntfs-3g or whatever happened) # Done
 Maybe add 32bit? # Done
-Search for the *.efi files and compare/update grub64.efi while at it. # DONE 
-"or edited by you to do so." # DONE
+Search for the *.efi files and compare/update grub64.efi while at it. # Done 
+"or edited by you to do so." # Done
 Check if W:\ is actually available?
 Find where i put that sweet bios i dug trough the entire intwerweb's to find once learning about.

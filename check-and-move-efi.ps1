@@ -2,7 +2,8 @@
 pause
 
 $msefi = 'W:\EFI\Microsoft\Boot\bootmgfw.efi'
-$MsRepEfiFilePath = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
+$MsRepEfiFile = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
+$MsBakEfiFile = "W:\EFI\Microsoft\Boot\bootmgfw.efi.bak"
 
 if (-not (Test-Path $msefi)) {
 Write-Output "Mounting EFI to W:"
@@ -14,8 +15,8 @@ if ($checkforstring) {
     $search = (Get-Content $checkforstring | Select-String -Pattern 'Microsoft Corporation').Matches.Success
     if($search){
         Write-output "$msefi contians the string Microsoft Corporation proceeding."
-         cp   $msefi W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
-         cp   $msefi $MsRepEfiFilePath
+         cp $msefi $MsBakEfiFile
+         cp $msefi $MsRepEfiFile
     } else {
         Write-output "$msefi does not contians the string 'Microsoft Corporation'."
         $ask = Read-Host -Prompt "Continue to check/update GRUB?[y/n]"
@@ -23,10 +24,15 @@ if ($checkforstring) {
 			pause
 			break
          }
+         if ( $ask -eq 'y' ) {
+         cp $msefi $MsBakEfiFile
+         cp $msefi $MsRepEfiFile
+         }
     }
 } else {
     "No file: $msefi"
-    breao
+	pause
+    break
 }
 
 $GrubForMsEfiLoc = $null
@@ -81,7 +87,7 @@ $GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grub*.efi -Force -Recurs
 			} 
 	}
 
-# add a choice
+# add a choice for multiple distros 
 
 	if ($null -eq $GrubForMsEfiLoc) {
 		Write-Output "No GRUB EFI file found or selected. Aborting"
@@ -106,20 +112,17 @@ Write-Output "Writing file hashes to: $hashfileout"
 
 function MD5HashEfi() {
 $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-
+
 	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($msefi))).Replace("-","")
 	Write-Output "$msefi MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash 
 
-
-	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($MsRepEfiFilePath))).Replace("-","")
-	Write-Output "$MsRepEfiFilePath MD5: $hash"
+	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($MsRepEfiFile))).Replace("-","")
+	Write-Output "$MsRepEfiFile MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash -Append
 
-
-	$EfiFilePath = "$GrubForMsEfiLoc"
 	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($GrubForMsEfiLoc))).Replace("-","")
-	Write-Output "$EfiFilePath MD5: $hash"
+	Write-Output "$GrubForMsEfiLoc MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash -Append
 
 }
@@ -136,8 +139,8 @@ write-output "EFI files are different replacing changed EFI files"
 	} else { 
 	Write-Output "$GrubForMsEfiLoc is equal to: $msefi" 
     }
-
-  cp  $hashfileout $hashfile
+
+  cp $hashfileout $hashfile
 
 	} else {
 	Write-output  "EFI files are the same"
