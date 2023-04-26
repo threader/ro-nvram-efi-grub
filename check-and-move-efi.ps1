@@ -2,6 +2,7 @@
 pause
 
 $msefi = 'W:\EFI\Microsoft\Boot\bootmgfw.efi'
+$MsRepEfiFilePath = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
 
 if (-not (Test-Path $msefi)) {
 Write-Output "Mounting EFI to W:"
@@ -13,8 +14,8 @@ if ($checkforstring) {
     $search = (Get-Content $checkforstring | Select-String -Pattern 'Microsoft Corporation').Matches.Success
     if($search){
         Write-output "$msefi contians the string Microsoft Corporation proceeding."
-        cp  $msefi W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
-        cp  $msefi W:\EFI\Microsoft\Boot\bootmgfww.efi
+         cp   $msefi W:\EFI\Microsoft\Boot\bootmgfw.efi.bak
+         cp   $msefi $MsRepEfiFilePath
     } else {
         Write-output "$msefi does not contians the string 'Microsoft Corporation'."
         $ask = Read-Host -Prompt "Continue to check/update GRUB?[y/n]"
@@ -25,7 +26,10 @@ if ($checkforstring) {
     }
 } else {
     "No file: $msefi"
+    breao
 }
+
+$GrubForMsEfiLoc = $null
 
 write-output "Locate signed or unsigned Secure Boot shim*.efi* and grub*.efi* files and path:"
 $GrubEfiSecFileLoc = Get-ChildItem –Path W:\EFI -include shim*.efi -Force -Recurse |
@@ -37,17 +41,17 @@ $GrubEfiSecFileLoc = Get-ChildItem –Path W:\EFI -include shim*.efi -Force -Rec
 	$GrubPwd = Split-Path -Path "$GrubEfiSecFileLoc" -Parent
 	
 	if (Test-Path "$GrubPwd\shim*.efi") {
-        $ask = Read-Host -Prompt "Found unsigned Secure Boot GRUB .efi, use this file?[y/n]"
+        $ask = Read-Host -Prompt "Found unsigned Secure Boot GRUB $GrubPwd\shim*.efi , use this file?[y/n]"
 			if ( $ask -eq 'y' ) {
-				$GrubForMsEfiLoc = Split-Path -Path $GrubPwd\shim*.efi
+				$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\shim*.efi
 				write-output "Using unsigned GRUB EFI: $GrubForMsEfiLoc"
 			}
 	}
 				
 	if (Test-Path "$GrubPwd\shim*.efi.*") { 
-		$ask = Read-Host -Prompt "Found Microsoft signed Secure Boot GRUB .efi, use this file?[y/n]"
+		$ask = Read-Host -Prompt "Found Microsoft signed Secure Boot GRUB $GrubPwd\shim*.efi.* , use this file?[y/n]"
 			if ( $ask -eq 'y' ) {
-				$GrubForMsEfiLoc = Split-Path -Path $GrubPwd\shim*.efi*
+				$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\shim*.efi.*
 				write-output "Wsing signed GRUB EFI : $GrubForMsEfiLoc"
 			}
 	}
@@ -61,23 +65,25 @@ $GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grub*.efi -Force -Recurs
 	$GrubPwd = Split-Path -Path "$GrubEfiFileLoc" -Parent
 
 
-	if (Test-Path "$GrubPwd\grubi*.efi") {
-		$ask = Read-Host -Prompt "Found unsigned secure boot GRUB .efi, use this file?[y/n]"
+	if (Test-Path "$GrubPwd\grub*.efi") {
+		$ask = Read-Host -Prompt "Found unsigned GRUB boot $GrubPwd\grub*.efi , use this file?[y/n]"
 		if ( $ask -eq 'y' ) {
-			$GrubForMsEfiLoc = Split-Path -Path $GrubPwd\grubi*.efi
+			$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\grub*.efi
 			write-output "Using unsigned GRUB EFI: $GrubForMsEfiLoc"
 		}
 	}
 
-	if (Test-Path "$GrubPwd\grubi*.efi*") {
-		$ask = Read-Host -Prompt "Found your Linux distributions signed GRUB .efi, use this file?[y/n]"
+	if (Test-Path "$GrubPwd\grubi*.efi*.") {
+		$ask = Read-Host -Prompt "Found your Linux distributions signed GRUB $GrubPwd\grub*.efi.* , use this file?[y/n]"
 			if ( $ask -eq 'y' ) {
-				$GrubForMsEfiLoc = Split-Path -Path $GrubPwd\grubi*.efi*
+				$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\grub*.efi.*
 				write-output "Using signed GRUB EFI: $GrubForMsEfiLoc"
-			}
+			} 
 	}
 
-	if (-not (Test-Path $GrubForMsEfiLoc) {
+# add a choice
+
+	if ($null -eq $GrubForMsEfiLoc) {
 		Write-Output "No GRUB EFI file found or selected. Aborting"
 		pause
 		break
@@ -101,17 +107,17 @@ Write-Output "Writing file hashes to: $hashfileout"
 function MD5HashEfi() {
 $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
 
-	$EfiFilePath = "$msefi"
-	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($EfiFilePath))).Replace("-","")
-	Write-Output "$EfiFilePath MD5: $hash"
+	$MsrepEfiFilePath = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
+
+	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($msefi))).Replace("-","")
+	Write-Output "$msefi MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash 
 
-	$EfiFilePath = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
-	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($EfiFilePath))).Replace("-","")
-	Write-Output "$EfiFilePath MD5: $hash"
+	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($MsRepEfiFilePath))).Replace("-","")
+	Write-Output "$MsRepEfiFilePath MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash -Append
 
-	if (Test-Path $GrubForMsEfiLoc) {
+	if (Test-Path -Path $GrubForMsEfiLoc) {
 	$EfiFilePath = "$GrubForMsEfiLoc"
 	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($EfiFilePath))).Replace("-","")
 	Write-Output "$EfiFilePath MD5: $hash"
@@ -125,26 +131,20 @@ function CompareHashFiles() {
 if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
 write-output "EFI files are different replacing changed EFI files"
 
-	if((Get-FileHash $GrubEfiFileLoc).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
-	Write-Output "$GrubEfiFileLoc is not equal to: $GrubForMsEfiLoc"
-	cp  $GrubPwd W:\EFI\Microsoft\Boot\
-	} else { 
-	Write-Output "$GrubEfiFileLoc  is equal to: $GrubForMsEfiLoc" 
-    }
-
 	if((Get-FileHash $msefi).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
-	Write-Output "$GrubEfiFileLoc is not equal to: $msefi"
-	cp  $GrubEfiFileLoc $msefi
+	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi"
+	 cp   $GrubEfiFileLoc $msefi
+	 cp   $GrubPwd W:\EFI\Microsoft\Boot\
 	} else { 
-	Write-Output "$GrubEfiFileLoc is equal to: $msefi" 
+	Write-Output "$GrubForMsEfiLoc is equal to: $msefi" 
     }
 
- cp $hashfileout $hashfile
+
+  cp  $hashfileout $hashfile
 
 	} else {
 	Write-output  "EFI files are the same"
 	}
-
 }
 CompareHashFiles
 

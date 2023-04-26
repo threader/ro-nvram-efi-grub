@@ -11,6 +11,7 @@ run the file "run-this.cmd" - with an internet conntection as it downloads NSudo
 --
 
 TODO:
+Add Secure Boot Signed and unsigned support. again #Done
 Maybe add 32bit? # Done
 Search for the *.efi files and compare/update grub64.efi while at it. # DONE 
 "or edited by you to do so." # DONE
