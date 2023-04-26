@@ -73,7 +73,7 @@ $GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grub*.efi -Force -Recurs
 		}
 	}
 
-	if (Test-Path "$GrubPwd\grubi*.efi*.") {
+	if (Test-Path "$GrubPwd\grubi*.efi.*") {
 		$ask = Read-Host -Prompt "Found your Linux distributions signed GRUB $GrubPwd\grub*.efi.* , use this file?[y/n]"
 			if ( $ask -eq 'y' ) {
 				$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\grub*.efi.*
@@ -106,23 +106,21 @@ Write-Output "Writing file hashes to: $hashfileout"
 
 function MD5HashEfi() {
 $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-
-	$MsrepEfiFilePath = "W:\EFI\Microsoft\Boot\bootmgfww.efi"
-
+
 	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($msefi))).Replace("-","")
 	Write-Output "$msefi MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash 
+
 
 	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($MsRepEfiFilePath))).Replace("-","")
 	Write-Output "$MsRepEfiFilePath MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash -Append
 
-	if (Test-Path -Path $GrubForMsEfiLoc) {
+
 	$EfiFilePath = "$GrubForMsEfiLoc"
-	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($EfiFilePath))).Replace("-","")
+	$hash = [System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes($GrubForMsEfiLoc))).Replace("-","")
 	Write-Output "$EfiFilePath MD5: $hash"
 	Out-File -FilePath $hashfileout -InputObject $hash -Append
-	}
 
 }
 MD5HashEfi
@@ -132,19 +130,19 @@ if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
 write-output "EFI files are different replacing changed EFI files"
 
 	if((Get-FileHash $msefi).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
-	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi"
-	 cp   $GrubEfiFileLoc $msefi
-	 cp   $GrubPwd W:\EFI\Microsoft\Boot\
+	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi , copying files."
+	 cp $GrubEfiFileLoc $msefi
+	 cp $GrubPwd W:\EFI\Microsoft\Boot\
 	} else { 
 	Write-Output "$GrubForMsEfiLoc is equal to: $msefi" 
     }
-
-
+
   cp  $hashfileout $hashfile
 
 	} else {
 	Write-output  "EFI files are the same"
 	}
+
 }
 CompareHashFiles
 
