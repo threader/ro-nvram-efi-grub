@@ -15,18 +15,17 @@ if ($checkforstring) {
     $search = (Get-Content $checkforstring | Select-String -Pattern 'Microsoft Corporation').Matches.Success
     if($search){
         Write-output "$msefi contians the string Microsoft Corporation proceeding."
+        $ask = Read-Host -Prompt "Continue to copy $msefi to $MsRepEfiFile and .bak?[y/n]"
+        if ( $ask -eq 'y' ) {
          cp $msefi $MsBakEfiFile
          cp $msefi $MsRepEfiFile
+         }
     } else {
         Write-output "$msefi does not contians the string 'Microsoft Corporation'."
         $ask = Read-Host -Prompt "Continue to check/update GRUB?[y/n]"
          if ( $ask -eq 'n' ) {
 			pause
 			break
-         }
-         if ( $ask -eq 'y' ) {
-         cp $msefi $MsBakEfiFile
-         cp $msefi $MsRepEfiFile
          }
     }
 } else {

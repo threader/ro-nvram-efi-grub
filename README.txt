@@ -17,4 +17,4 @@ Maybe add 32bit? # Done
 Search for the *.efi files and compare/update grub64.efi while at it. # Done 
 "or edited by you to do so." # Done
 Check if W:\ is actually available?
-Find where i put that sweet bios i dug trough the entire intwerweb's to find once learning about.
+Find where i put that sweet Acer 5750 BIOS i dug trough the entire intwerweb's to find once learning about. #Done
