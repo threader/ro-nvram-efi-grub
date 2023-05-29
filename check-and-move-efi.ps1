@@ -78,7 +78,7 @@ $GrubEfiFileLoc = Get-ChildItem –Path W:\EFI -include grub*.efi -Force -Recurs
 		}
 	}
 
-	if (Test-Path "$GrubPwd\grubi*.efi.*") {
+	if (Test-Path "$GrubPwd\grub*.efi.*") {
 		$ask = Read-Host -Prompt "Found your Linux distributions signed GRUB $GrubPwd\grub*.efi.* , use this file?[y/n]"
 			if ( $ask -eq 'y' ) {
 				$GrubForMsEfiLoc = Resolve-Path -Path $GrubPwd\grub*.efi.*
@@ -132,9 +132,9 @@ if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
 write-output "EFI files are different replacing changed EFI files"
 
 	if((Get-FileHash $msefi).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
-	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi , copying files."
+	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi , copying $GrubEfiFileLoc to $msefi and $GrubPwd to W:\EFI\Microsoft\Boot\."
 	 cp $GrubEfiFileLoc $msefi
-	 cp $GrubPwd W:\EFI\Microsoft\Boot\
+	 cp -r $GrubPwd\* W:\EFI\Microsoft\Boot\
 	} else { 
 	Write-Output "$GrubForMsEfiLoc is equal to: $msefi" 
     }
