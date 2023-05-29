@@ -133,7 +133,7 @@ write-output "EFI files are different replacing changed EFI files"
 
 	if((Get-FileHash $msefi).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
 	Write-Output "$GrubForMsEfiLoc is not equal to: $msefi , copying $GrubEfiFileLoc to $msefi and $GrubPwd to W:\EFI\Microsoft\Boot\."
-	 cp $GrubEfiFileLoc $msefi
+	 cp $GrubForMsEfiLoc $msefi
 	 cp -r $GrubPwd\* W:\EFI\Microsoft\Boot\
 	} else { 
 	Write-Output "$GrubForMsEfiLoc is equal to: $msefi" 
