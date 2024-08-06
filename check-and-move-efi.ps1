@@ -1,4 +1,13 @@
-﻿Write-Output "Workaround read only NVRAM or in my case a hacked BIOS with hardcoded defaults and an early version EFI." 
+﻿# If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
+# {
+  # Relaunch as an elevated process:
+#  Start-Process powershell.exe "-File",('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
+#  exit
+#}
+# Now running elevated so launch the script:
+#& "d:\long path name\script name.ps1" "Long Argument 1" "Long Argument 2"
+
+Write-Output "Workaround read only NVRAM or in my case a hacked BIOS with hardcoded defaults and an early version EFI." 
 pause
 
 $msefi = 'W:\EFI\Microsoft\Boot\bootmgfw.efi'
