@@ -137,12 +137,13 @@ $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvide
 MD5HashEfi
 
 function CompareHashFiles() {
-# if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
-# write-output "EFI file hashes are different replacing changed EFI files"
+ if((Get-FileHash $hashfile).hash  -ne (Get-FileHash $hashfilenew).hash) {
+ write-output "EFI file hashes are different replacing changed EFI files"
 
 	if((Get-FileHash $msefi).hash  -ne (Get-FileHash $GrubForMsEfiLoc).hash) {
 	 Write-Output "$GrubForMsEfiLoc differs from $msefi"
      write-output "Copying $GrubEfiFileLoc to $msefi and $GrubPwd to W:\EFI\Microsoft\Boot\."
+   #  cp $msefi W:\EFI\Microsoft\Boot\
 	 cp $GrubForMsEfiLoc $msefi
 	 Copy-Item -Recurse -Force $GrubPwd\* W:\EFI\Microsoft\Boot\
 	} else { 
@@ -151,15 +152,15 @@ function CompareHashFiles() {
 
   cp $hashfileout $hashfile
 
-#	} else {
-#	    Write-output  "$hashfile and $hashfilenew are the same file. Assume all is well."
-   # Write-output  "You should not be here"
-		#$ask = Read-Host -Prompt "Copy $GrubForMsEfiLoc to $msefi etc. anyway?[y/n]"
-		#if ( $ask -eq 'y' ) {
+	} else {
+	    Write-output  "$hashfile and $hashfilenew are the same file. Assume all is well."
+    Write-output  "You should not be here"
+		# $ask = Read-Host -Prompt "Copy $GrubForMsEfiLoc to $msefi etc. anyway?[y/n]"
+		# if ( $ask -eq 'y' ) {
 		# cp $GrubForMsEfiLoc $msefi
 		# Copy-Item -Recurse -Force $GrubPwd\* W:\EFI\Microsoft\Boot\
-		#}
-	#}
+		# }
+	}
 }
 CompareHashFiles
 
